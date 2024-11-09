@@ -20,6 +20,22 @@
     </div>
     @endif
 
+    <div class="flex justify-between items-center mb-4">
+        <div class="flex items-center">
+            <span class="mr-2">Sort by:</span>
+            <form action="{{ route('products.index') }}" method="GET" class="flex space-x-2">
+                <select name="sort_by" class="px-4 py-2 border rounded" onchange="this.form.submit()">
+                    <option value="name" {{ request('sort_by')=='name' ? 'selected' : '' }}>Name</option>
+                    <option value="price" {{ request('sort_by')=='price' ? 'selected' : '' }}>Price</option>
+                </select>
+                <select name="order" class="px-4 py-2 border rounded" onchange="this.form.submit()">
+                    <option value="asc" {{ request('order')=='asc' ? 'selected' : '' }}>Ascending</option>
+                    <option value="desc" {{ request('order')=='desc' ? 'selected' : '' }}>Descending</option>
+                </select>
+            </form>
+        </div>
+    </div>
+
     @if($products->isEmpty())
     <div class="text-center text-gray-600 py-4">
         <p class="font-semibold text-xl">No products found.</p>

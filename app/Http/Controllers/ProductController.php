@@ -10,17 +10,28 @@ class ProductController extends Controller
     {
         $query = Product::query();
 
-        // If there's a search query, filter products by name
-        if ($request->has('search') && !empty($request->search)) {
-            $searchTerm = $request->search;
-            $query->where('name', 'like', '%' . $searchTerm . '%');
+
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
         }
 
-        // Get paginated products
-        $products = $query->paginate(10); // You can change 10 to any number for pagination
+
+        if ($request->has('sort_by')) {
+            $sortBy = $request->sort_by;
+            $order = $request->get('order', 'asc');
+            if (in_array($sortBy, ['name', 'price'])) {
+                $query->orderBy($sortBy, $order);
+            }
+        }
+
+
+        $products = $query->paginate(10);
 
         return view('products.index', compact('products'));
     }
+
 
     public function create()
     {
@@ -33,7 +44,7 @@ class ProductController extends Controller
             'name' => 'required',
             'price' => 'required|numeric',
             'image' => 'required|image',
-            // Add validation rules as needed
+
         ]);
 
         $product = new Product();
@@ -42,7 +53,7 @@ class ProductController extends Controller
         $product->price = $request->price;
         $product->stock = $request->stock;
 
-        // Handle the image upload
+
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('products', 'public');
             $product->image = $imagePath;
@@ -73,28 +84,27 @@ class ProductController extends Controller
 {
     $product = Product::findOrFail($id);
 
-    // Update validation rules
+
     $request->validate([
         'name' => 'required',
         'price' => 'required|numeric',
-        'image' => 'nullable|image', // Make the image optional
-        'description' => 'nullable', // Optional description
+        'image' => 'nullable|image',
+        'description' => 'nullable',
         'stock' => 'nullable|integer',
     ]);
 
-    // Update product fields
+
     $product->name = $request->name;
     $product->description = $request->description;
     $product->price = $request->price;
     $product->stock = $request->stock;
 
-    // Handle the image upload if a new image is uploaded
     if ($request->hasFile('image')) {
         $imagePath = $request->file('image')->store('products', 'public');
         $product->image = $imagePath;
     }
 
-    // Save the updated product
+
     $product->save();
 
     return redirect()->route('products.index')->with('success', 'Product updated successfully!');
